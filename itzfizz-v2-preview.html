@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ITZFIZZ — Drive the Future</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Barlow+Condensed:wght@100;300;400;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & base ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold:    #c9a84c;
+  --gold-lt: #e8d08a;
+  --silver:  #a8b4c0;
+  --bg:      #06060a;
+  --sky-top: #04080f;
+  --sky-mid: #0b1628;
+  --sky-hor: #1a3050;
+  --road:    #111118;
+  --road-mk: #2a2a35;
+  --accent:  #4a9eff;
+  --warm:    #ff9248;
+  --text:    rgba(255,255,255,0.92);
+  --muted:   rgba(255,255,255,0.35);
+}
+html { background: var(--bg); scroll-behavior: auto; }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg); color: var(--text);
+  overflow-x: hidden;
+  cursor: none;
+}
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--gold); }
+
+/* ── Custom cursor ─────────────────────────────────────────────────────── */
+#cur {
+  position: fixed; width: 8px; height: 8px;
+  background: var(--gold); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  mix-blend-mode: screen;
+  transition: width .15s, height .15s;
+}
+#cur-ring {
+  position: fixed; width: 28px; height: 28px;
+  border: 1px solid rgba(201,168,76,.45);
+  border-radius: 50%; pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+}
+
+/* ── Noise film grain ──────────────────────────────────────────────────── */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 997;
+  opacity: .035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 160px;
+  animation: grain-shift 8s steps(1) infinite;
+}
+@keyframes grain-shift {
+  0%,100% { transform: translate(0,0) }
+  10% { transform: translate(-2%,-2%) }
+  20% { transform: translate(2%,-1%) }
+  30% { transform: translate(-1%,2%) }
+  40% { transform: translate(1%,1%) }
+  50% { transform: translate(-2%,1%) }
+  60% { transform: translate(2%,2%) }
+  70% { transform: translate(-1%,-1%) }
+  80% { transform: translate(1%,-2%) }
+  90% { transform: translate(-1%,1%) }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HERO SECTION — Pinned via ScrollTrigger
+══════════════════════════════════════════════════════════════ */
+#hero {
+  position: relative;
+  height: 500vh; /* scroll travel */
+}
+
+#hero-sticky {
+  position: sticky; top: 0;
+  width: 100%; height: 100vh;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start;
+}
+
+/* ── Sky layer (background, moves slowest) ─────────────────── */
+#layer-sky {
+  position: absolute; inset: 0;
+  will-change: transform;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 100%, var(--sky-hor) 0%, transparent 70%),
+    linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-hor) 100%);
+}
+
+/* Stars */
+.star {
+  position: absolute; border-radius: 50%;
+  background: #fff; will-change: opacity;
+}
+
+/* Moon */
+#moon {
+  position: absolute;
+  width: 54px; height: 54px;
+  top: 8%; right: 15%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e8e0cc, #b8a870);
+  box-shadow:
+    0 0 0 1px rgba(232,208,138,.15),
+    0 0 30px rgba(201,168,76,.25),
+    0 0 80px rgba(201,168,76,.1);
+  will-change: transform, opacity;
+}
+
+/* Moon craters */
+#moon::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle 6px at 40% 30%, rgba(0,0,0,.2) 0%, transparent 100%),
+    radial-gradient(circle 3px at 65% 55%, rgba(0,0,0,.15) 0%, transparent 100%),
+    radial-gradient(circle 4px at 25% 65%, rgba(0,0,0,.18) 0%, transparent 100%);
+}
+
+/* Distant city glow */
+#city-glow {
+  position: absolute;
+  bottom: 38%; left: 50%;
+  transform: translateX(-50%);
+  width: 70vw; height: 120px;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%,
+    rgba(74,158,255,.12) 0%, rgba(74,158,255,.05) 40%, transparent 70%);
+  will-change: transform;
+}
+
+/* Horizon atmospheric glow */
+#horizon-glow {
+  position: absolute;
+  bottom: 36%; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(to top,
+    rgba(255,146,72,.08) 0%, rgba(201,168,76,.05) 30%, transparent 100%);
+  will-change: transform;
+}
+
+/* ── Mountain silhouettes ───────────────────────────────────── */
+#layer-mountains {
+  position: absolute;
+  bottom: 36%; left: 0; right: 0;
+  height: 200px;
+  will-change: transform;
+}
+
+/* ── Cloud layer (moves medium speed) ──────────────────────── */
+#layer-clouds {
+  position: absolute;
+  top: 5%; left: 0; right: 0; height: 35%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.cloud {
+  position: absolute;
+  background: transparent;
+  will-change: transform, opacity;
+}
+
+/* ── Road layer ─────────────────────────────────────────────── */
+#layer-road {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  will-change: transform;
+}
+
+/* Asphalt surface */
+#road-surface {
+  position: absolute;
+  bottom: 0; left: -10%; right: -10%;
+  top: 0;
+  background:
+    linear-gradient(to bottom,
+      rgba(26,26,34,0) 0%,
+      var(--road) 25%,
+      #0e0e16 100%);
+}
+
+/* Perspective road lines */
+#road-lines {
+  position: absolute;
+  bottom: 0; left: 50%; top: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Road edge lines */
+.road-edge {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, transparent, rgba(201,168,76,.5), var(--gold));
+  will-change: transform;
+}
+.road-edge.left  { left:  15%; height: 100%; transform-origin: bottom center; transform: perspective(400px) rotateX(12deg) skewX(28deg); }
+.road-edge.right { right: 15%; height: 100%; transform-origin: bottom center; transform: perspective(400px) rotateX(12deg) skewX(-28deg); }
+
+/* Center dashes */
+.road-dash {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  width: 3px;
+  background: rgba(201,168,76,.45);
+  will-change: transform, opacity;
+}
+
+/* Road reflection / sheen */
+#road-sheen {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 40% 30% at 50% 80%,
+    rgba(74,158,255,.06) 0%, transparent 70%);
+}
+
+/* ── Tree silhouettes ───────────────────────────────────────── */
+#layer-trees {
+  position: absolute;
+  bottom: 35%; left: 0; right: 0;
+  height: 180px;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADLINE & STATS
+══════════════════════════════════════════════════════════════ */
+#hero-ui {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding-top: clamp(3rem, 8vh, 5rem);
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Top nav line */
+#top-bar {
+  width: 100%; display: flex;
+  justify-content: space-between; align-items: center;
+  padding: 0 clamp(1.5rem, 5vw, 4rem);
+  margin-bottom: clamp(2rem, 6vh, 3.5rem);
+  opacity: 0;
+}
+.nav-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 300;
+  letter-spacing: .35em; text-transform: uppercase;
+  color: rgba(201,168,76,.55);
+}
+
+/* Eyebrow */
+#eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(10px, 1.2vw, 13px);
+  font-weight: 300; letter-spacing: .55em;
+  text-transform: uppercase;
+  color: rgba(201,168,76,.6);
+  margin-bottom: 1rem;
+  opacity: 0;
+}
+
+/* Main headline */
+#headline {
+  display: flex; flex-wrap: wrap;
+  justify-content: center; align-items: baseline;
+  gap: 0 .4em;
+  margin-bottom: clamp(1.2rem, 3vh, 2rem);
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.hl-word { display: flex; }
+
+.hl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(2.4rem, 7.5vw, 8rem);
+  font-weight: 100;
+  letter-spacing: .12em;
+  line-height: 1;
+  opacity: 0; display: inline-block;
+  will-change: transform, opacity;
+}
+.hl.brand {
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-lt) 50%, var(--gold) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(201,168,76,.4));
+}
+
+/* Thin rule */
+#headline-rule {
+  width: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,.5), transparent);
+  margin: 0 auto clamp(1.5rem, 4vh, 2.5rem);
+}
+
+/* Tagline */
+#tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(.9rem, 1.8vw, 1.4rem);
+  font-weight: 300; font-style: italic;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.4);
+  margin-bottom: clamp(2rem, 5vh, 3rem);
+  opacity: 0;
+}
+
+/* Stats row */
+#stats {
+  display: flex; gap: clamp(1.5rem, 4vw, 4rem);
+  flex-wrap: wrap; justify-content: center;
+}
+
+.stat {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .3rem; opacity: 0;
+  will-change: transform, opacity;
+}
+.stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-weight: 700; line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(201,168,76,.5), 0 0 60px rgba(201,168,76,.2);
+  letter-spacing: .04em;
+}
+.stat-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(9px, 1.1vw, 11px);
+  font-weight: 300; letter-spacing: .3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+}
+.stat-sep {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, transparent, rgba(201,168,76,.35), transparent);
+  align-self: center;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CAR
+══════════════════════════════════════════════════════════════ */
+#car-container {
+  position: absolute;
+  /* Sits on the road horizon */
+  bottom: 28%;
+  left: 0; right: 0;
+  height: 240px;
+  z-index: 25;
+  pointer-events: none;
+  will-change: transform;
+}
+
+#car-inner {
+  position: absolute;
+  bottom: 0;
+  /* Start far left (scroll will drive it right) */
+  left: -30%;
+  width: min(640px, 70vw);
+  height: 100%;
+  will-change: transform, opacity;
+  transform-origin: center bottom;
+}
+
+/* Headlight beam */
+#headlight-beam {
+  position: absolute;
+  left: 0%; bottom: 22%;
+  width: 220px; height: 120px;
+  background: conic-gradient(
+    from -20deg at 100% 60%,
+    transparent 0deg,
+    rgba(232,208,138,.18) 20deg,
+    rgba(232,208,138,.06) 35deg,
+    transparent 45deg
+  );
+  transform-origin: right center;
+  filter: blur(4px);
+  will-change: opacity;
+}
+
+/* Car shadow on road */
+#car-shadow {
+  position: absolute;
+  bottom: -8px; left: 50%;
+  transform: translateX(-50%);
+  width: 85%; height: 24px;
+  background: radial-gradient(ellipse, rgba(0,0,0,.7) 0%, transparent 70%);
+  filter: blur(6px);
+  will-change: transform;
+}
+
+/* Tail light glow */
+#tail-glow {
+  position: absolute;
+  right: 2%; bottom: 22%;
+  width: 60px; height: 30px;
+  background: radial-gradient(ellipse, rgba(255,60,60,.6) 0%, transparent 70%);
+  filter: blur(3px);
+  will-change: opacity;
+  animation: tail-pulse 1.8s ease-in-out infinite;
+}
+@keyframes tail-pulse {
+  0%,100% { opacity: .7; } 50% { opacity: 1; }
+}
+
+/* Exhaust */
+#exhaust {
+  position: absolute;
+  right: 0%; bottom: 22%;
+  display: flex; flex-direction: column; gap: 3px;
+  opacity: 0;
+}
+.exhaust-puff {
+  width: 12px; height: 3px;
+  background: rgba(255,255,255,.12);
+  border-radius: 4px;
+  will-change: transform, opacity;
+}
+
+/* ── Scroll indicator ────────────────────────────────────────── */
+#scroll-hint {
+  position: absolute;
+  bottom: clamp(1.5rem, 4vh, 2.5rem);
+  left: 50%; transform: translateX(-50%);
+  z-index: 40;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0;
+}
+.scroll-text {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px; letter-spacing: .4em;
+  text-transform: uppercase; color: rgba(201,168,76,.5);
+}
+.scroll-line {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, rgba(201,168,76,.5), transparent);
+  animation: scroll-line-anim 1.6s ease-in-out infinite;
+}
+@keyframes scroll-line-anim {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ── Scroll progress readout (bottom left) ───────────────────── */
+#progress-readout {
+  position: fixed;
+  bottom: 2rem; left: 2rem;
+  z-index: 50;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px; letter-spacing: .3em;
+  color: rgba(201,168,76,.4);
+  opacity: 0;
+  transition: opacity .4s;
+}
+
+/* ── Speed blur vignette overlay ─────────────────────────────── */
+#speed-vignette {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 28;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse 50% 50% at 50% 50%, transparent 30%, rgba(0,0,0,.5) 100%);
+  will-change: opacity;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   POST-HERO CONTENT SECTION
+══════════════════════════════════════════════════════════════ */
+#after {
+  background: var(--bg);
+  position: relative; z-index: 10;
+}
+
+/* Section: Features */
+.feature-section {
+  max-width: 1200px; margin: 0 auto;
+  padding: clamp(5rem, 12vh, 9rem) clamp(1.5rem, 6vw, 5rem);
+}
+
+.section-eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; letter-spacing: .5em;
+  text-transform: uppercase; color: rgba(201,168,76,.5);
+  margin-bottom: 1rem;
+  opacity: 0;
+}
+
+.section-h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(2.4rem, 5vw, 5rem);
+  font-weight: 100; letter-spacing: .08em;
+  line-height: 1.05; color: #fff;
+  margin-bottom: 4rem;
+  opacity: 0;
+}
+.section-h2 strong { font-weight: 700; color: var(--gold); }
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5px; /* hairline gap = revealed via parent bg */
+  background: rgba(201,168,76,.1);
+  border: 1px solid rgba(201,168,76,.1);
+}
+
+.feat-card {
+  background: var(--bg);
+  padding: clamp(2rem, 4vw, 3rem);
+  position: relative; overflow: hidden;
+  opacity: 0; transition: background .3s;
+}
+.feat-card:hover { background: #0d0d14; }
+
+.feat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  transform: scaleX(0); transition: transform .5s ease;
+}
+.feat-card:hover::before { transform: scaleX(1); }
+
+.feat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 3.5rem; font-weight: 100;
+  color: rgba(201,168,76,.15); line-height: 1;
+  margin-bottom: .8rem; letter-spacing: .05em;
+}
+
+.feat-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: 400; letter-spacing: .1em;
+  text-transform: uppercase; color: #fff;
+  margin-bottom: .75rem;
+}
+
+.feat-body {
+  font-size: .85rem; line-height: 1.7;
+  color: rgba(255,255,255,.35); font-weight: 300;
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.section-divider {
+  width: 80px; height: 1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  margin: 0 auto clamp(3rem, 7vh, 5rem);
+}
+
+/* ── CTA section ─────────────────────────────────────────────── */
+.cta-section {
+  text-align: center;
+  padding: clamp(4rem, 10vh, 8rem) clamp(1.5rem, 6vw, 5rem);
+  border-top: 1px solid rgba(201,168,76,.1);
+  border-bottom: 1px solid rgba(201,168,76,.1);
+  position: relative; overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px; height: 400px;
+  background: radial-gradient(ellipse, rgba(201,168,76,.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cta-h {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 4.5rem);
+  font-weight: 100; letter-spacing: .08em;
+  color: #fff; margin-bottom: 1.5rem; opacity: 0;
+}
+
+.cta-sub {
+  font-size: .9rem; letter-spacing: .05em; font-weight: 300;
+  color: rgba(255,255,255,.3); margin-bottom: 2.5rem; opacity: 0;
+}
+
+.cta-btn {
+  display: inline-block; cursor: pointer;
+  padding: .9rem 3rem;
+  border: 1px solid rgba(201,168,76,.5);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 400; letter-spacing: .4em;
+  text-transform: uppercase; color: var(--gold);
+  background: transparent; position: relative;
+  transition: color .3s;
+  opacity: 0;
+}
+.cta-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--gold); transform: scaleX(0);
+  transform-origin: left; transition: transform .4s ease;
+  z-index: -1;
+}
+.cta-btn:hover { color: #06060a; }
+.cta-btn:hover::before { transform: scaleX(1); }
+
+/* ── Footer ──────────────────────────────────────────────────── */
+footer {
+  max-width: 1200px; margin: 0 auto;
+  padding: 2.5rem clamp(1.5rem, 6vw, 5rem);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+.footer-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.2rem; font-weight: 700; letter-spacing: .3em;
+  color: rgba(201,168,76,.4);
+}
+.footer-copy {
+  font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+  color: rgba(255,255,255,.15);
+}
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div id="cur" aria-hidden="true"></div>
+<div id="cur-ring" aria-hidden="true"></div>
+
+<!-- ════════════════════════════════════ HERO ════ -->
+<section id="hero">
+ <div id="hero-sticky">
+
+  <!-- ── SKY LAYER ─────────────────────────────── -->
+  <div id="layer-sky">
+    <!-- Moon -->
+    <div id="moon"></div>
+    <!-- City glow on horizon -->
+    <div id="city-glow"></div>
+    <!-- Horizon warm glow -->
+    <div id="horizon-glow"></div>
+    <!-- Stars injected by JS -->
+  </div>
+
+  <!-- ── CLOUDS LAYER ──────────────────────────── -->
+  <div id="layer-clouds">
+    <!-- Clouds injected by JS -->
+  </div>
+
+  <!-- ── MOUNTAINS LAYER ──────────────────────── -->
+  <div id="layer-mountains">
+    <svg viewBox="0 0 1440 200" preserveAspectRatio="none"
+         style="width:100%;height:100%;display:block;" aria-hidden="true">
+      <!-- Far mountains (lighter = more distant) -->
+      <path d="M0,200 L0,140 L80,90 L180,130 L280,70 L390,120 L500,60 L620,110 L740,50 L860,100 L980,40 L1100,95 L1220,45 L1350,90 L1440,55 L1440,200 Z"
+            fill="rgba(18,28,48,0.9)"/>
+      <!-- Closer mountains -->
+      <path d="M0,200 L0,160 L120,115 L240,150 L360,100 L480,140 L600,85 L720,130 L850,80 L970,125 L1090,70 L1210,115 L1340,85 L1440,110 L1440,200 Z"
+            fill="rgba(12,18,32,0.95)"/>
+      <!-- Highlight ridge -->
+      <path d="M0,168 L120,122 L240,158 L360,108 L480,148 L600,93 L720,138 L850,88 L970,133 L1090,78 L1210,123 L1340,93 L1440,118"
+            fill="none" stroke="rgba(201,168,76,0.06)" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- ── TREES LAYER ───────────────────────────── -->
+  <div id="layer-trees">
+    <svg viewBox="0 0 1440 180" preserveAspectRatio="none"
+         style="width:100%;height:100%;display:block;" aria-hidden="true">
+      <!-- Tree silhouettes on left -->
+      <g fill="rgba(8,12,20,1)">
+        <rect x="10"  y="40"  width="10" height="140"/>
+        <polygon points="15,40  -5,100  35,100"/>
+        <polygon points="15,10  -10,70  40,70"/>
+        <rect x="50"  y="60"  width="8"  height="120"/>
+        <polygon points="54,60  34,110  74,110"/>
+        <polygon points="54,30  30,80   78,80"/>
+        <rect x="90"  y="50"  width="10" height="130"/>
+        <polygon points="95,50  70,100  120,100"/>
+        <polygon points="95,18  67,75   123,75"/>
+        <rect x="130" y="70"  width="7"  height="110"/>
+        <polygon points="133,70 115,115 151,115"/>
+        <rect x="165" y="45"  width="9"  height="135"/>
+        <polygon points="169,45 148,95  190,95"/>
+        <polygon points="169,15 145,70  193,70"/>
+        <!-- Faint right side trees -->
+        <g opacity="0.6">
+          <rect x="1280" y="55"  width="9"  height="125"/>
+          <polygon points="1284,55 1264,105 1304,105"/>
+          <polygon points="1284,22 1261,78  1307,78"/>
+          <rect x="1320" y="70"  width="8"  height="110"/>
+          <polygon points="1324,70 1305,115 1343,115"/>
+          <rect x="1360" y="48"  width="10" height="132"/>
+          <polygon points="1365,48 1343,98  1387,98"/>
+          <polygon points="1365,16 1340,72  1390,72"/>
+          <rect x="1400" y="65"  width="8"  height="115"/>
+          <polygon points="1404,65 1384,112 1424,112"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ── ROAD LAYER ────────────────────────────── -->
+  <div id="layer-road">
+    <div id="road-surface"></div>
+    <div class="road-edge left"></div>
+    <div class="road-edge right"></div>
+    <div id="road-lines">
+      <!-- Dashes injected by JS -->
+    </div>
+    <div id="road-sheen"></div>
+  </div>
+
+  <!-- ── CAR CONTAINER ────────────────────────── -->
+  <div id="car-container">
+   <div id="car-inner">
+    <!-- Headlight beam -->
+    <div id="headlight-beam"></div>
+    <!-- Tail light glow -->
+    <div id="tail-glow"></div>
+    <!-- Exhaust -->
+    <div id="exhaust">
+      <div class="exhaust-puff" style="width:18px;opacity:.15"></div>
+      <div class="exhaust-puff" style="width:12px;opacity:.1"></div>
+      <div class="exhaust-puff" style="width:8px;opacity:.07"></div>
+    </div>
+    <!-- Ground shadow -->
+    <div id="car-shadow"></div>
+
+    <!-- ── PREMIUM CAR SVG ── -->
+    <svg id="car-svg" viewBox="0 0 640 220" fill="none"
+         xmlns="http://www.w3.org/2000/svg"
+         style="width:100%;height:auto;display:block;overflow:visible"
+         aria-label="Luxury sports car">
+      <defs>
+        <!-- Body gradient: dark metallic -->
+        <linearGradient id="cBody" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%"   stop-color="#2a2a3e"/>
+          <stop offset="35%"  stop-color="#1a1a2a"/>
+          <stop offset="70%"  stop-color="#12121c"/>
+          <stop offset="100%" stop-color="#0a0a12"/>
+        </linearGradient>
+        <!-- Roof gradient -->
+        <linearGradient id="cRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#222232"/>
+          <stop offset="100%" stop-color="#0e0e1a"/>
+        </linearGradient>
+        <!-- Glass -->
+        <linearGradient id="cGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="rgba(74,158,255,0.35)"/>
+          <stop offset="60%"  stop-color="rgba(74,158,255,0.12)"/>
+          <stop offset="100%" stop-color="rgba(40,80,140,0.08)"/>
+        </linearGradient>
+        <!-- Gold trim -->
+        <linearGradient id="cGold" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#a07828"/>
+          <stop offset="40%"  stop-color="#e8d08a"/>
+          <stop offset="100%" stop-color="#c9a84c"/>
+        </linearGradient>
+        <!-- Wheel -->
+        <radialGradient id="cWheel" cx="50%" cy="50%">
+          <stop offset="0%"   stop-color="#2e2e40"/>
+          <stop offset="100%" stop-color="#0c0c14"/>
+        </radialGradient>
+        <!-- Body highlight stripe -->
+        <linearGradient id="cHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="transparent"/>
+          <stop offset="30%"  stop-color="rgba(255,255,255,0.06)"/>
+          <stop offset="50%"  stop-color="rgba(255,255,255,0.12)"/>
+          <stop offset="70%"  stop-color="rgba(255,255,255,0.06)"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </linearGradient>
+        <!-- Headlight radial -->
+        <radialGradient id="cHeadlight" cx="50%" cy="50%">
+          <stop offset="0%"  stop-color="rgba(232,208,138,0.95)"/>
+          <stop offset="40%" stop-color="rgba(232,208,138,0.5)"/>
+          <stop offset="100%" stop-color="rgba(232,208,138,0.05)"/>
+        </radialGradient>
+        <!-- Taillight -->
+        <radialGradient id="cTail" cx="50%" cy="50%">
+          <stop offset="0%"  stop-color="rgba(255,50,50,0.95)"/>
+          <stop offset="100%" stop-color="rgba(255,50,50,0.1)"/>
+        </radialGradient>
+        <!-- Rim spokes filter -->
+        <filter id="rimGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1" result="blur"/>
+          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+        </filter>
+      </defs>
+
+      <!-- ── Ground reflection underneath car ── -->
+      <ellipse cx="330" cy="208" rx="230" ry="10"
+               fill="url(#cBody)" opacity="0.25" filter="url(#rimGlow)"/>
+
+      <!-- ── Main body (low, wide silhouette) ── -->
+      <path d="M55 170 L75 130 L115 100 L170 72 L250 55 L340 50 L430 54 L495 72 L545 100 L575 130 L590 158 L590 172 Z"
+            fill="url(#cBody)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+
+      <!-- ── Sill / lower side panel ── -->
+      <path d="M55 170 L590 172 L590 180 L55 180 Z"
+            fill="#0a0a10" stroke="rgba(201,168,76,.12)" stroke-width="0.5"/>
+
+      <!-- ── Roof / canopy ── -->
+      <path d="M185 100 L220 58 L290 35 L370 33 L440 40 L500 65 L530 100 Z"
+            fill="url(#cRoof)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+
+      <!-- ── Windshield ── -->
+      <path d="M232 98 L260 52 L348 45 L390 98 Z"
+            fill="url(#cGlass)" stroke="rgba(74,158,255,0.3)" stroke-width="0.8"/>
+
+      <!-- Windshield reflection stripe -->
+      <path d="M245 96 L268 55 L300 50 L290 96 Z"
+            fill="rgba(255,255,255,0.04)"/>
+
+      <!-- ── Rear window ── -->
+      <path d="M398 98 L432 48 L488 66 L520 98 Z"
+            fill="url(#cGlass)" stroke="rgba(74,158,255,0.2)" stroke-width="0.8"/>
+
+      <!-- ── Door panel crease line ── -->
+      <path d="M170 104 Q330 112 530 102"
+            stroke="rgba(255,255,255,0.1)" stroke-width="1.2" fill="none"/>
+      <path d="M170 112 Q330 120 530 110"
+            stroke="rgba(255,255,255,0.04)" stroke-width="0.5" fill="none"/>
+
+      <!-- ── Body highlight stripe ── -->
+      <path d="M80 155 Q330 145 580 158"
+            stroke="url(#cHighlight)" stroke-width="18" fill="none" opacity="0.6"/>
+
+      <!-- ── Gold trim strip ── -->
+      <path d="M56 172 L590 173"
+            stroke="url(#cGold)" stroke-width="1.5" opacity="0.7"/>
+
+      <!-- ── Front bumper / fascia ── -->
+      <path d="M55 168 L58 145 L75 132 L55 170 Z"
+            fill="#141420"/>
+      <path d="M58 145 L75 130 L115 102 L100 145 L62 158 Z"
+            fill="url(#cBody)"/>
+
+      <!-- Front splitter -->
+      <path d="M55 170 L62 178 L100 178 L100 172 Z"
+            fill="url(#cGold)" opacity="0.8"/>
+
+      <!-- ── Rear fascia ── -->
+      <path d="M575 132 L588 150 L592 170 L580 178 L545 178 L545 172 L588 170 Z"
+            fill="#141420"/>
+
+      <!-- Rear diffuser -->
+      <path d="M590 172 L592 180 L550 180 L550 172 Z"
+            fill="url(#cGold)" opacity="0.7"/>
+
+      <!-- ── Side intake / vent (front) ── -->
+      <rect x="108" y="118" width="32" height="5" rx="2.5"
+            fill="rgba(201,168,76,0.35)"/>
+      <rect x="108" y="126" width="22" height="3" rx="1.5"
+            fill="rgba(201,168,76,0.2)"/>
+      <rect x="108" y="132" width="14" height="2" rx="1"
+            fill="rgba(201,168,76,0.12)"/>
+
+      <!-- ── Side mirror ── -->
+      <path d="M188 90 L200 85 L205 95 L190 100 Z"
+            fill="#1a1a28" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+
+      <!-- ── Headlight unit ── -->
+      <!-- Outer lens -->
+      <ellipse cx="88" cy="128" rx="20" ry="9"
+               fill="url(#cHeadlight)"/>
+      <!-- DRL strip -->
+      <path d="M68 122 L108 122" stroke="rgba(232,208,138,.7)" stroke-width="2" stroke-linecap="round"/>
+      <!-- Inner light -->
+      <ellipse cx="88" cy="128" rx="10" ry="5"
+               fill="rgba(232,208,138,0.95)"/>
+      <ellipse cx="88" cy="128" rx="4" ry="2.5"
+               fill="white"/>
+
+      <!-- ── Tail light ── -->
+      <ellipse cx="572" cy="128" rx="14" ry="7"
+               fill="url(#cTail)"/>
+      <!-- Tail light detail -->
+      <path d="M558 122 L586 122" stroke="rgba(255,60,60,.6)" stroke-width="1.5" stroke-linecap="round"/>
+      <ellipse cx="572" cy="128" rx="6" ry="3.5"
+               fill="rgba(255,80,80,.95)"/>
+
+      <!-- ── FRONT WHEEL ── -->
+      <!-- Tyre -->
+      <circle cx="168" cy="186" r="34"
+              fill="url(#cWheel)" stroke="#1a1a24" stroke-width="1"/>
+      <!-- Tyre wall texture -->
+      <circle cx="168" cy="186" r="34"
+              fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="6"/>
+      <!-- Rim outer ring -->
+      <circle cx="168" cy="186" r="26"
+              fill="#181826" stroke="rgba(201,168,76,.25)" stroke-width="1"/>
+      <!-- Rim inner -->
+      <circle cx="168" cy="186" r="18"
+              fill="#111118"/>
+      <!-- Spokes (5-spoke design) -->
+      <g id="rim-front" style="transform-origin:168px 186px">
+        <g stroke="rgba(201,168,76,0.7)" stroke-width="2.5" stroke-linecap="round" filter="url(#rimGlow)">
+          <!-- Spoke 1 (top) -->
+          <line x1="168" y1="170" x2="168" y2="167"/>
+          <path d="M168,170 L161,168 L157,176" stroke-width="2"/>
+          <line x1="168" y1="170" x2="175" y2="168" />
+          <path d="M168,170 L175,168 L179,176" stroke-width="2"/>
+          <!-- 5 spokes radially -->
+        </g>
+        <!-- Clean 5-spoke rim -->
+        <g stroke="rgba(201,168,76,.65)" stroke-width="2.2" stroke-linecap="round">
+          <line x1="168" y1="168" x2="168" y2="162"/>
+          <line x1="184" y1="170.5" x2="188" y2="165.5"/>
+          <line x1="179" y1="199" x2="183.5" y2="204"/>
+          <line x1="157" y1="199" x2="152.5" y2="204"/>
+          <line x1="152" y1="170.5" x2="148" y2="165.5"/>
+        </g>
+        <!-- Spoke bridge lines -->
+        <g stroke="rgba(201,168,76,.3)" stroke-width="1.2">
+          <line x1="168" y1="168" x2="184" y2="170.5"/>
+          <line x1="184" y1="170.5" x2="179" y2="199"/>
+          <line x1="179" y1="199" x2="157" y2="199"/>
+          <line x1="157" y1="199" x2="152" y2="170.5"/>
+          <line x1="152" y1="170.5" x2="168" y2="168"/>
+        </g>
+        <!-- Center cap -->
+        <circle cx="168" cy="186" r="6" fill="#0e0e18" stroke="rgba(201,168,76,.4)" stroke-width="1"/>
+        <circle cx="168" cy="186" r="3" fill="rgba(201,168,76,.6)"/>
+      </g>
+      <!-- Brake disc glimpse -->
+      <circle cx="168" cy="186" r="14"
+              fill="none" stroke="rgba(255,255,255,.04)" stroke-width="2" stroke-dasharray="3 3"/>
+
+      <!-- ── REAR WHEEL ── -->
+      <circle cx="462" cy="186" r="34"
+              fill="url(#cWheel)" stroke="#1a1a24" stroke-width="1"/>
+      <circle cx="462" cy="186" r="34"
+              fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="6"/>
+      <circle cx="462" cy="186" r="26"
+              fill="#181826" stroke="rgba(201,168,76,.25)" stroke-width="1"/>
+      <circle cx="462" cy="186" r="18"
+              fill="#111118"/>
+      <g id="rim-rear" style="transform-origin:462px 186px">
+        <g stroke="rgba(201,168,76,.65)" stroke-width="2.2" stroke-linecap="round">
+          <line x1="462" y1="168" x2="462" y2="162"/>
+          <line x1="478" y1="170.5" x2="482" y2="165.5"/>
+          <line x1="473" y1="199" x2="477.5" y2="204"/>
+          <line x1="451" y1="199" x2="446.5" y2="204"/>
+          <line x1="446" y1="170.5" x2="442" y2="165.5"/>
+        </g>
+        <g stroke="rgba(201,168,76,.3)" stroke-width="1.2">
+          <line x1="462" y1="168" x2="478" y2="170.5"/>
+          <line x1="478" y1="170.5" x2="473" y2="199"/>
+          <line x1="473" y1="199" x2="451" y2="199"/>
+          <line x1="451" y1="199" x2="446" y2="170.5"/>
+          <line x1="446" y1="170.5" x2="462" y2="168"/>
+        </g>
+        <circle cx="462" cy="186" r="6" fill="#0e0e18" stroke="rgba(201,168,76,.4)" stroke-width="1"/>
+        <circle cx="462" cy="186" r="3" fill="rgba(201,168,76,.6)"/>
+      </g>
+      <circle cx="462" cy="186" r="14"
+              fill="none" stroke="rgba(255,255,255,.04)" stroke-width="2" stroke-dasharray="3 3"/>
+
+      <!-- ── Roof antenna ── -->
+      <line x1="360" y1="33" x2="363" y2="15"
+            stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <circle cx="363" cy="14" r="2" fill="rgba(201,168,76,.6)"/>
+
+    </svg>
+   </div><!-- /car-inner -->
+  </div><!-- /car-container -->
+
+  <!-- ── Speed vignette (darkens corners at speed) ── -->
+  <div id="speed-vignette" aria-hidden="true"></div>
+
+  <!-- ── HERO UI (text) ──────────────────────────── -->
+  <div id="hero-ui" aria-hidden="false">
+
+    <div id="top-bar">
+      <span class="nav-label">[ITZFIZZ / 2024]</span>
+      <span class="nav-label">Drive The Future</span>
+      <span class="nav-label">Vol. I</span>
+    </div>
+
+    <div id="eyebrow">The Future of Luxury Mobility</div>
+
+    <div id="headline" role="heading" aria-level="1"></div><!-- filled by JS -->
+
+    <div id="headline-rule"></div>
+
+    <div id="tagline">Where precision meets the asphalt</div>
+
+    <div id="stats">
+      <div class="stat">
+        <div class="stat-val" id="sv0">0%</div>
+        <div class="stat-label">Customer Satisfaction</div>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <div class="stat-val" id="sv1">0%</div>
+        <div class="stat-label">Performance Boost</div>
+      </div>
+      <div class="stat-sep" style="opacity:0" class="stat"></div>
+      <div class="stat">
+        <div class="stat-val" id="sv2">0%</div>
+        <div class="stat-label">Efficiency Increase</div>
+      </div>
+    </div>
+
+  </div><!-- /hero-ui -->
+
+  <!-- ── Scroll hint ──────────────────────────────── -->
+  <div id="scroll-hint" aria-label="Scroll to explore">
+    <span class="scroll-text">Scroll to Explore</span>
+    <div class="scroll-line"></div>
+  </div>
+
+  <!-- ── Progress readout ─────────────────────────── -->
+  <div id="progress-readout">0%</div>
+
+ </div><!-- /hero-sticky -->
+</section><!-- /hero -->
+
+<!-- ════════════════════════════════ AFTER-HERO ════ -->
+<section id="after">
+
+  <!-- Features -->
+  <div class="feature-section">
+    <p class="section-eyebrow">Why ITZFIZZ</p>
+    <h2 class="section-h2">ENGINEERED<br/>FOR THE <strong>EXTRAORDINARY</strong></h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-num">01</div>
+        <div class="feat-title">Precision Engineering</div>
+        <p class="feat-body">Every component is crafted to sub-millimeter tolerance. From intake manifolds to suspension geometry, nothing is left to chance.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-num">02</div>
+        <div class="feat-title">Aerodynamic Mastery</div>
+        <p class="feat-body">Wind tunnel validated at 280km/h. Active aerodynamics that respond in milliseconds, keeping you planted at any speed.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-num">03</div>
+        <div class="feat-title">Intelligent Drive</div>
+        <p class="feat-body">Neural-adaptive chassis systems anticipate road inputs 800 times per second. The car becomes an extension of your instinct.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-num">04</div>
+        <div class="feat-title">Bespoke Luxury</div>
+        <p class="feat-body">Handcrafted interiors selected from 2,400 material combinations. Curated by artisans with decades of heritage behind every stitch.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2 class="cta-h">READY TO DRIVE<br/>THE FUTURE?</h2>
+    <p class="cta-sub">Limited production. Exclusive ownership experience.</p>
+    <button class="cta-btn">Configure Yours</button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <span class="footer-brand">ITZFIZZ</span>
+    <span class="footer-copy">© 2024 ITZFIZZ Automotive · All Rights Reserved</span>
+  </footer>
+
+</section>
+
+<!-- ════════════════════════════════════ JS ════ -->
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── Utility ──────────────────────────────────────────────────── */
+const q  = id => document.getElementById(id);
+const qs = sel => document.querySelectorAll(sel);
+const rand = (min, max) => Math.random() * (max - min) + min;
+
+/* ── Custom cursor ────────────────────────────────────────────── */
+const cur  = q('cur');
+const curR = q('cur-ring');
+document.addEventListener('mousemove', e => {
+  gsap.to(cur,  { x: e.clientX, y: e.clientY, duration: .1 });
+  gsap.to(curR, { x: e.clientX, y: e.clientY, duration: .35, ease: 'power2.out' });
+});
+
+/* ── Stars ────────────────────────────────────────────────────── */
+const sky = q('layer-sky');
+for (let i = 0; i < 140; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const sz = rand(.5, 2.2);
+  const x  = rand(0, 100);
+  const y  = rand(0, 62);       // keep stars above horizon
+  Object.assign(s.style, {
+    width: sz + 'px', height: sz + 'px',
+    left: x + '%',    top: y + '%',
+    opacity: rand(.15, .9),
+  });
+  sky.appendChild(s);
+  // Twinkle randomly
+  gsap.to(s, {
+    opacity: rand(.05, .2),
+    duration: rand(1.5, 4.5),
+    repeat: -1, yoyo: true, ease: 'sine.inOut',
+    delay: rand(0, 5),
+  });
+}
+
+/* ── Clouds (SVG-drawn) ────────────────────────────────────────── */
+const cloudLayer = q('layer-clouds');
+const cloudData = [
+  { x: 5,  y: 12, w: 220, op: .6 },
+  { x: 25, y: 5,  w: 180, op: .45 },
+  { x: 52, y: 18, w: 260, op: .5 },
+  { x: 68, y: 8,  w: 200, op: .55 },
+  { x: 80, y: 22, w: 160, op: .4 },
+  { x: 38, y: 28, w: 140, op: .3 },
+];
+
+cloudData.forEach((d, i) => {
+  const div = document.createElement('div');
+  div.className = 'cloud';
+  div.style.cssText = `left:${d.x}%;top:${d.y}%;opacity:${d.op};`;
+  const r1 = d.w * .22, r2 = d.w * .16, r3 = d.w * .13;
+  const h  = d.w * .28;
+  div.innerHTML = `<svg viewBox="0 0 ${d.w} ${h+20}" style="width:${d.w}px;height:auto;overflow:visible">
+    <defs>
+      <radialGradient id="cg${i}" cx="50%" cy="80%">
+        <stop offset="0%" stop-color="rgba(30,55,90,.7)"/>
+        <stop offset="100%" stop-color="rgba(15,28,50,.2)"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="${d.w*.35}" cy="${h}" rx="${r1}" ry="${r1*.5}" fill="url(#cg${i})"/>
+    <ellipse cx="${d.w*.52}" cy="${h*.7}" rx="${r2}" ry="${r2*.7}" fill="url(#cg${i})"/>
+    <ellipse cx="${d.w*.65}" cy="${h*.9}" rx="${r3}" ry="${r3*.55}" fill="url(#cg${i})"/>
+    <ellipse cx="${d.w*.35}" cy="${h}" rx="${r1}" ry="4" fill="rgba(201,168,76,.04)"/>
+  </svg>`;
+  cloudLayer.appendChild(div);
+});
+
+/* ── Road dashes ──────────────────────────────────────────────── */
+const roadLines = q('road-lines');
+for (let i = 0; i < 10; i++) {
+  const d = document.createElement('div');
+  d.className = 'road-dash';
+  const pct  = i / 9;
+  const h    = 4 + pct * 26;  // perspective scale: nearer = taller
+  const yPct = 8 + i * 9;
+  d.style.cssText = `height:${h}px;bottom:${yPct}%;opacity:${.1 + pct*.4}`;
+  roadLines.appendChild(d);
+}
+
+/* ════════════════════════════════════════════════════
+   HEADLINE BUILD
+═══════════════════════════════════════════════════ */
+const WELCOME = 'WELCOME';
+const BRAND   = 'ITZFIZZ';
+const hlEl    = q('headline');
+
+// "WELCOME" word
+const w1 = document.createElement('div');
+w1.className = 'hl-word';
+w1.style.marginRight = '.5em';
+WELCOME.split('').forEach(ch => {
+  const s = document.createElement('span');
+  s.className = 'hl'; s.textContent = ch;
+  w1.appendChild(s);
+});
+
+// "ITZFIZZ" word
+const w2 = document.createElement('div');
+w2.className = 'hl-word';
+BRAND.split('').forEach(ch => {
+  const s = document.createElement('span');
+  s.className = 'hl brand'; s.textContent = ch;
+  w2.appendChild(s);
+});
+
+hlEl.appendChild(w1);
+hlEl.appendChild(w2);
+
+/* ════════════════════════════════════════════════════
+   INTRO TIMELINE
+═══════════════════════════════════════════════════ */
+const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+// Top bar
+intro.fromTo('#top-bar',
+  { y: -20, opacity: 0 },
+  { y: 0, opacity: 1, duration: 1 },
+  0
+);
+
+// Eyebrow
+intro.fromTo('#eyebrow',
+  { y: 16, opacity: 0, letterSpacing: '1em' },
+  { y: 0, opacity: 1, letterSpacing: '.55em', duration: 1 },
+  0.35
+);
+
+// Headline letters — staggered
+intro.fromTo('.hl',
+  { y: 80, opacity: 0, skewX: -6 },
+  { y: 0, opacity: 1, skewX: 0, duration: .9, stagger: .045, ease: 'expo.out' },
+  0.5
+);
+
+// Headline rule expands
+intro.fromTo('#headline-rule',
+  { width: 0 },
+  { width: '40%', duration: 1.2, ease: 'expo.out' },
+  1.2
+);
+
+// Tagline
+intro.fromTo('#tagline',
+  { y: 14, opacity: 0 },
+  { y: 0, opacity: 1, duration: .9 },
+  1.3
+);
+
+// Stats cards
+intro.fromTo('.stat',
+  { y: 24, opacity: 0, scale: .95 },
+  { y: 0, opacity: 1, scale: 1, duration: .75, stagger: .15, ease: 'back.out(1.5)' },
+  1.5
+);
+
+// Stat counter
+const statCfg = [
+  { id:'sv0', val: 95, suf:'%' },
+  { id:'sv1', val: 80, suf:'%' },
+  { id:'sv2', val: 60, suf:'%' },
+];
+statCfg.forEach((s,i) => {
+  const el = q(s.id), obj = { v: 0 };
+  gsap.to(obj, {
+    v: s.val, duration: 1.6, ease:'power2.out', delay: 1.7 + i*.15,
+    onUpdate() { el.textContent = Math.round(obj.v) + s.suf; }
+  });
+});
+
+// Car entrance — drives in from left
+intro.fromTo('#car-inner',
+  { x: '-110vw', opacity: 0, rotate: -1.5, scale: .96 },
+  { x: '0vw', opacity: 1, rotate: 0, scale: 1, duration: 2, ease: 'expo.out' },
+  .8
+);
+
+// Wheels spin on entrance
+intro.fromTo(['#rim-front','#rim-rear'],
+  { rotate: 0 },
+  { rotate: 900, duration: 2, ease: 'expo.out' },
+  0.8
+);
+
+// Exhaust visible
+intro.to('#exhaust', { opacity: 1, duration: .5 }, 1.8);
+
+// Scroll hint
+intro.fromTo('#scroll-hint',
+  { y: 10, opacity: 0 },
+  { y: 0, opacity: 1, duration: 1 },
+  2.1
+);
+
+// Progress readout appears when scrolling starts
+gsap.set('#progress-readout', { opacity: 0 });
+
+/* ── Idle float ─────────────────────────────────── */
+gsap.to('#car-inner', {
+  y: -10, repeat: -1, yoyo: true, duration: 2.6,
+  ease: 'sine.inOut', delay: 2.8
+});
+
+/* ════════════════════════════════════════════════════
+   SCROLL-DRIVEN ANIMATION
+   Hero is pinned by ScrollTrigger (pin: true)
+═══════════════════════════════════════════════════ */
+const carST = gsap.timeline({
+  scrollTrigger: {
+    trigger: '#hero',
+    start:   'top top',
+    end:     'bottom top',
+    pin:     '#hero-sticky',   // <-- Pins the sticky inner
+    scrub:   2.2,              // silky smooth with slight lag
+    onUpdate(self) {
+      const pct = Math.round(self.progress * 100);
+      const el  = q('progress-readout');
+      el.textContent = pct + '% —  SCROLL';
+      gsap.to(el, { opacity: pct > 2 ? 1 : 0, duration: .3 });
+    }
+  }
+});
+
+/* ─ Phase 1 (0→30%): Car accelerates from rest position rightward ─ */
+carST.to('#car-inner', {
+  x: '28vw',
+  rotate: 1.2,
+  scale: 1.05,
+  ease: 'power2.inOut',
+  duration: 1,
+}, 0);
+
+/* ─ Phase 2 (30→55%): Slight deceleration / cruise phase ─ */
+carST.to('#car-inner', {
+  x: '38vw',
+  rotate: .5,
+  scale: 1.08,
+  ease: 'power1.inOut',
+  duration: .5,
+}, 1);
+
+/* ─ Phase 3 (55→100%): Full speed exit ─ */
+carST.to('#car-inner', {
+  x: '140vw',
+  rotate: 3,
+  scale: .95,
+  opacity: .4,
+  ease: 'power3.in',
+  duration: 1.5,
+}, 1.5);
+
+/* ─ Headlight beam brightens while moving ─ */
+carST.fromTo('#headlight-beam',
+  { opacity: .4 },
+  { opacity: .9, ease: 'power1.inOut', duration: 1.5 },
+  0
+);
+carST.to('#headlight-beam', { opacity: 0, duration: .5 }, 1.5);
+
+/* ─ Speed vignette intensifies on exit ─ */
+carST.to('#speed-vignette',
+  { opacity: 1, ease: 'power2.in', duration: 1.5 },
+  1.5
+);
+
+/* ─ Wheel spin throughout scroll ─ */
+const wheelObj = { deg: 0 };
+ScrollTrigger.create({
+  trigger: '#hero',
+  start: 'top top', end: 'bottom top',
+  scrub: 1,
+  onUpdate(self) {
+    const deg = self.progress * 2160; // 6 full rotations
+    gsap.set('#rim-front', { rotate: deg });
+    gsap.set('#rim-rear',  { rotate: deg });
+    // Road dash speed illusion
+    gsap.set(qs('.road-dash'), { opacity: .1 + self.progress * .55 });
+  }
+});
+
+/* ─ Parallax: clouds move faster than sky ─ */
+gsap.to('#layer-clouds', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'bottom top', scrub: 1.8 },
+  x: '-22%', ease: 'none',
+});
+
+/* ─ Parallax: mountains slightly ─ */
+gsap.to('#layer-mountains', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'bottom top', scrub: 3 },
+  x: '-8%', ease: 'none',
+});
+
+/* ─ Parallax: trees parallax fastest ─ */
+gsap.to('#layer-trees', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'bottom top', scrub: 1.2 },
+  x: '-35%', ease: 'none',
+});
+
+/* ─ Moon parallax / fade on approach of horizon ─ */
+gsap.to('#moon', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'bottom top', scrub: 2 },
+  y: '15vh', opacity: .35, scale: .9, ease: 'none',
+});
+
+/* ─ Sky horizon glow intensifies ─ */
+gsap.to('#horizon-glow', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'bottom top', scrub: 1.5 },
+  opacity: 2.5, scaleY: 2.5, ease: 'power1.inOut',
+});
+
+/* ─ Headline UI fades out early ─ */
+gsap.to('#hero-ui', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'35% top', scrub: 1.2 },
+  y: -60, opacity: 0, ease: 'none',
+});
+
+/* ─ Scroll hint hides immediately on scroll ─ */
+gsap.to('#scroll-hint', {
+  scrollTrigger: { trigger:'#hero', start:'top top', end:'5% top', scrub: 1 },
+  opacity: 0, y: -10, ease: 'none',
+});
+
+/* ════════════════════════════════════════════════════
+   AFTER-HERO REVEAL ANIMATIONS
+═══════════════════════════════════════════════════ */
+qs('.section-eyebrow').forEach(el => {
+  gsap.fromTo(el, { opacity:0, y:20 }, {
+    opacity:1, y:0, duration:.8, ease:'power3.out',
+    scrollTrigger: { trigger: el, start:'top 85%' }
+  });
+});
+qs('.section-h2').forEach(el => {
+  gsap.fromTo(el, { opacity:0, y:32 }, {
+    opacity:1, y:0, duration:1, ease:'power3.out',
+    scrollTrigger: { trigger: el, start:'top 82%' }
+  });
+});
+qs('.feat-card').forEach((el,i) => {
+  gsap.fromTo(el, { opacity:0, y:45 }, {
+    opacity:1, y:0, duration:.85, delay: i*.08, ease:'power3.out',
+    scrollTrigger: { trigger: el, start:'top 88%' }
+  });
+});
+qs('.cta-h, .cta-sub, .cta-btn').forEach((el,i) => {
+  gsap.fromTo(el, { opacity:0, y:28 }, {
+    opacity:1, y:0, duration:.8, delay:i*.12, ease:'power3.out',
+    scrollTrigger: { trigger: el, start:'top 85%' }
+  });
+});
+</script>
+</body>
+</html>
